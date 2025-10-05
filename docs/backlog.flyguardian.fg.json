@@ -1,0 +1,308 @@
+[
+  {
+    "id": "OPS-301",
+    "etapa": 3,
+    "modulo": "Drones",
+    "titulo": "CRUD multi-tenant de drones",
+    "descricao": "Criar infraestrutura de dados e APIs para cadastrar, atualizar e listar drones por tenant com regras de acesso baseadas em funcao.",
+    "criteriosAceite": [
+      "Modelos e schemas validam serial, modelo, fabricante e atributos de performance com zod.",
+      "Endpoints POST/GET/PATCH/DELETE em /api/drones respeitam roles: admin_global/cliente gerenciam, operador consulta.",
+      "Persistencia inclui tenantId obrigatoria e indices unicos por tenant.",
+      "Testes Jest + Supertest cobrem sucesso, validacao e RBAC (>=80% coverage no controlador).",
+      "Arquivo tests/drones.http cobre cenarios happy-path e erros de validacao."
+    ],
+    "prioridade": "P0",
+    "dependencias": [],
+    "artefatosSaida": [
+      "src/models/Drone.fg.ts",
+      "src/schemas/drone.schema.fg.ts",
+      "src/controllers/drones.controller.fg.ts",
+      "src/routes/drones.routes.fg.ts",
+      "tests/drones.http"
+    ],
+    "testes": ["automatizado", "manual"]
+  },
+  {
+    "id": "OPS-302",
+    "etapa": 3,
+    "modulo": "Missoes",
+    "titulo": "Planejamento e CRUD de missoes",
+    "descricao": "Implementar fluxo de criacao, edicao, calculo de estimativas e consulta de missoes com validacao de modos e pontos de rota.",
+    "criteriosAceite": [
+      "Endpoints POST/GET/PATCH/DELETE /api/missions com modos grid/linear/waypoints, integrados a drones disponiveis.",
+      "Servico calcula duracao, distancia, baterias e armazena estimativas e RTH considerando terreno quando fornecido.",
+      "Zod schema rejeita rotas invalidas, pontos fora da area e drones nao pertencentes ao tenant.",
+      "Missao expoe status (draft, scheduled, approved) com transicoes auditadas.",
+      "tests/missions.http cobre criacao completa, atualizacao de rota e validacao de erros."
+    ],
+    "prioridade": "P0",
+    "dependencias": ["OPS-301"],
+    "artefatosSaida": [
+      "src/models/Mission.fg.ts",
+      "src/schemas/mission.schema.fg.ts",
+      "src/services/missions.service.fg.ts",
+      "src/controllers/missions.controller.fg.ts",
+      "src/routes/missions.routes.fg.ts",
+      "tests/missions.http"
+    ],
+    "testes": ["automatizado", "manual"]
+  },
+  {
+    "id": "OPS-303",
+    "etapa": 3,
+    "modulo": "FlightHistory",
+    "titulo": "Registro historico de voos",
+    "descricao": "Armazenar e expor historico de execucao de missoes com telemetria resumida, midias vinculadas e auditoria de status.",
+    "criteriosAceite": [
+      "Modelo FlightHistory relaciona missao, drone, timestamps, metricas de voo e resultado (sucesso/abortado).",
+      "Endpoint POST /api/flight-history e disparado ao concluir missao e aceita telemetria compactada e links de midia.",
+      "Consultas GET suportam filtros por data, drone, operador e exportacao paginada.",
+      "Somente admin_global/cliente acessam tudo; operador consulta apenas voos do seu tenant.",
+      "Integracao com logger registra falhas e salva payload bruto em storage seguro."
+    ],
+    "prioridade": "P0",
+    "dependencias": ["OPS-302"],
+    "artefatosSaida": [
+      "src/models/FlightHistory.fg.ts",
+      "src/controllers/flightHistory.controller.fg.ts",
+      "src/routes/flightHistory.routes.fg.ts",
+      "src/services/flightHistory.service.fg.ts",
+      "tests/flightHistory.http"
+    ],
+    "testes": ["automatizado", "manual"]
+  },
+  {
+    "id": "OPS-401",
+    "etapa": 4,
+    "modulo": "Streaming",
+    "titulo": "Placeholders DJI SDK e gateway WebRTC",
+    "descricao": "Preparar camadas de integracao com DJI SDK e gateway WebRTC para telemetria/video, registrando logs estruturados.",
+    "criteriosAceite": [
+      "src/services/streaming/djiSdk.client.fg.ts expoe metodos stub connect/start/stop documentados com TODOs.",
+      "Gateway WebRTC publica metodos initPeer/createOffer/saveIce usando eventos simulados.",
+      "Rota POST /api/streaming/sessions inicia sessao e retorna token temporario; DELETE encerra e registra log.",
+      "Logs pino registram lifecycle (connect, stream_started, stream_stopped) com traceId de missao.",
+      "tests/streaming.http cobre criacao/encerramento de sessao e resposta esperada."
+    ],
+    "prioridade": "P0",
+    "dependencias": ["OPS-302", "OPS-303"],
+    "artefatosSaida": [
+      "src/services/streaming/djiSdk.client.fg.ts",
+      "src/services/streaming/webrtc.gateway.fg.ts",
+      "src/routes/streaming.routes.fg.ts",
+      "src/utils/telemetry.publisher.fg.ts",
+      "tests/streaming.http"
+    ],
+    "testes": ["manual", "automatizado"]
+  },
+  {
+    "id": "OPS-402",
+    "etapa": 4,
+    "modulo": "Monitoramento",
+    "titulo": "Monitoramento e logs de telemetria",
+    "descricao": "Instrumentar coleta de telemetria em tempo real com filas internas, logs estruturados e endpoints de observacao.",
+    "criteriosAceite": [
+      "WebSocket /ws/telemetry ecoa mensagens simuladas a partir do publisher com validacao de schema.",
+      "Endpoint GET /api/monitoring/metrics retorna metricas simuladas (latencia, bitrate) e timestamps.",
+      "Logs armazenam cada frame de controle com nivel debug e guard rails contra volume excessivo.",
+      "Alertas de desconexao escrevem evento em FlightHistory com status interrupted.",
+      "Documentacao rapida em JSDoc descreve como trocar stub por implementacao real."
+    ],
+    "prioridade": "P1",
+    "dependencias": ["OPS-401"],
+    "artefatosSaida": [
+      "src/controllers/monitoring.controller.fg.ts",
+      "src/routes/monitoring.routes.fg.ts",
+      "src/utils/logging/telemetry.logger.fg.ts",
+      "tests/monitoring.http"
+    ],
+    "testes": ["manual", "automatizado"]
+  },
+  {
+    "id": "OPS-501",
+    "etapa": 5,
+    "modulo": "Alertas & Emergencias",
+    "titulo": "Endpoints de alerta com integracao WhatsApp/Twilio",
+    "descricao": "Criar endpoints para disparo de alertas manuais/automaticos com provider placeholder Twilio/WhatsApp e logs auditaveis.",
+    "criteriosAceite": [
+      "POST /api/alerts envia payload para provider TwilioMock e retorna protocolo.",
+      "Provider salva mensagens em storage in-memory e loga sucesso/erro com nivel info/err.",
+      "Rate-limit especifico (5/min) evita spam e responde 429 quando extrapolado.",
+      "RBAC: apenas admin_global/operador disparam alertas, moradores recebem notificacoes.",
+      "tests/alerts.http cobre cenario feliz, rate-limit e erro simulado do provider."
+    ],
+    "prioridade": "P0",
+    "dependencias": ["OPS-302", "OPS-401"],
+    "artefatosSaida": [
+      "src/controllers/alerts.controller.fg.ts",
+      "src/services/alerts/whatsapp.provider.fg.ts",
+      "src/routes/alerts.routes.fg.ts",
+      "tests/alerts.http"
+    ],
+    "testes": ["automatizado", "manual"]
+  },
+  {
+    "id": "OPS-502",
+    "etapa": 5,
+    "modulo": "Alertas & Emergencias",
+    "titulo": "Auditoria e relatorios de alertas",
+    "descricao": "Persistir historico de alertas, anexar evidencias e gerar relatorios exportaveis para auditoria.",
+    "criteriosAceite": [
+      "Modelo AlertEvent registra alerta, missao relacionada, midia e status de entrega.",
+      "GET /api/alerts/history permite filtros por tenant, tipo de alerta, intervalo de datas.",
+      "Exportacao CSV/PDF (stub) gera arquivo armazenado em storage local e retorna URL.",
+      "Logs pino guardam correlacao entre alerta e eventId/traceId.",
+      "Documentacao MD descreve processo de auditoria e pontos de integracao futura."
+    ],
+    "prioridade": "P1",
+    "dependencias": ["OPS-501"],
+    "artefatosSaida": [
+      "src/models/AlertEvent.fg.ts",
+      "src/services/alerts/alertHistory.service.fg.ts",
+      "src/controllers/alertHistory.controller.fg.ts",
+      "tests/alerts.history.http",
+      "docs/alerts-auditoria.md"
+    ],
+    "testes": ["manual", "automatizado"]
+  },
+  {
+    "id": "OPS-601",
+    "etapa": 6,
+    "modulo": "Chat em Tempo Real",
+    "titulo": "Servidor WebSocket e salas de chat",
+    "descricao": "Configurar gateway WebSocket com criacao de salas (CCO, seguranca, moradores) e autenticacao JWT.",
+    "criteriosAceite": [
+      "Endpoint WS /ws/chat autentica via JWT RS256 e rejeita tokens invalidos.",
+      "Eventos join/leave/broadcast seguem contrato JSON com tenantId e role.",
+      "Rooms criadas por missao permitem ate 100 participantes com broadcast em <200ms (mock).",
+      "Logs pino registram join/leave e mensagens com mascaramento de dados sensiveis.",
+      "Documento docs/chat-protocol.md descreve payloads e regras de retry."
+    ],
+    "prioridade": "P0",
+    "dependencias": ["OPS-302"],
+    "artefatosSaida": [
+      "src/gateways/chat/ws.server.fg.ts",
+      "src/routes/chat.routes.fg.ts",
+      "src/utils/chat/auth.guard.fg.ts",
+      "docs/chat-protocol.md"
+    ],
+    "testes": ["manual", "automatizado"]
+  },
+  {
+    "id": "OPS-602",
+    "etapa": 6,
+    "modulo": "Chat em Tempo Real",
+    "titulo": "Persistencia e testes do chat",
+    "descricao": "Persistir mensagens relevantes, expor historico e cobrir o gateway com testes automaticos e scripts .http/WS.",
+    "criteriosAceite": [
+      "Modelo ChatMessage salva missao, autor, payload e timestamp com TTL configuravel.",
+      "GET /api/chat/history/:missionId retorna ultimas 200 mensagens filtradas por role.",
+      "Testes e2e simulam dois clientes WebSocket e validam broadcast e desconexao.",
+      "Arquivo tests/chat.http documenta chamadas REST; tests/chat.ws.spec.fg.ts cobre cenario feliz e token invalido.",
+      "Job de limpeza remove mensagens expiradas e registra contagem no log."
+    ],
+    "prioridade": "P1",
+    "dependencias": ["OPS-601"],
+    "artefatosSaida": [
+      "src/models/ChatMessage.fg.ts",
+      "src/controllers/chatHistory.controller.fg.ts",
+      "tests/chat.ws.spec.fg.ts",
+      "tests/chat.http"
+    ],
+    "testes": ["automatizado", "manual"]
+  },
+  {
+    "id": "OPS-701",
+    "etapa": 7,
+    "modulo": "Pagamentos & Assinaturas",
+    "titulo": "Mock de gateway e planos",
+    "descricao": "Provisionar servico de billing com gateway mock, planos em moeda BRL/USD e endpoints de assinatura.",
+    "criteriosAceite": [
+      "Servico gatewayMock processa intents com estados pending/success/failed registrados em memoria.",
+      "POST /api/billing/subscriptions cria assinatura vinculada a tenant e plano.",
+      "Planos suportam moedas BRL e USD com taxas convertidas via tabela fixa.",
+      "Eventos de billing sao logados e enviados a fila (stub) para notificacoes futuras.",
+      "tests/billing.http cobre criacao de assinatura, troca de plano e falha simulada."
+    ],
+    "prioridade": "P0",
+    "dependencias": ["OPS-301", "OPS-302"],
+    "artefatosSaida": [
+      "src/services/billing/gateway.mock.fg.ts",
+      "src/models/Plan.fg.ts",
+      "src/controllers/billing.controller.fg.ts",
+      "src/routes/billing.routes.fg.ts",
+      "tests/billing.http"
+    ],
+    "testes": ["manual", "automatizado"]
+  },
+  {
+    "id": "OPS-702",
+    "etapa": 7,
+    "modulo": "Pagamentos & Assinaturas",
+    "titulo": "Relatorios e conciliacao",
+    "descricao": "Gerar relatorios de receita e status de assinaturas, com exportacao e conciliacao basica.",
+    "criteriosAceite": [
+      "Modelo Subscription registra ciclo de cobranca, faturas e status (active/past_due/canceled).",
+      "GET /api/billing/reports resume receita por moeda e quantidade de clientes ativos.",
+      "Exportacao CSV gera arquivo em storage/exports/ com URL temporaria.",
+      "docs/billing-report-template.md descreve layout e KPIs acompanhados.",
+      "Testes unitarios validam agregacoes e conversoes monetarias."
+    ],
+    "prioridade": "P1",
+    "dependencias": ["OPS-701"],
+    "artefatosSaida": [
+      "src/models/Subscription.fg.ts",
+      "src/services/billing/report.service.fg.ts",
+      "docs/billing-report-template.md",
+      "tests/billing.reports.spec.fg.ts"
+    ],
+    "testes": ["automatizado"]
+  },
+  {
+    "id": "OPS-801",
+    "etapa": 8,
+    "modulo": "Paineis Web & Mobile",
+    "titulo": "Scaffold painel web (React)",
+    "descricao": "Criar aplicacao web React com autenticacao basica, dashboard de missoes e integracao com APIs ja desenvolvidas.",
+    "criteriosAceite": [
+      "apps/web inicializado com Vite/React + TypeScript e lint configurado.",
+      "Tela de login consome /auth/login e armazena tokens em storage seguro.",
+      "Dashboard lista missoes com filtros e cards de status puxando /api/missions.",
+      "Pagina de detalhes mostra telemetria ao vivo via WebSocket stub.",
+      "Documentacao em README web descreve scripts e variaveis necessarias."
+    ],
+    "prioridade": "P0",
+    "dependencias": ["OPS-301", "OPS-302", "OPS-401", "OPS-601", "OPS-701"],
+    "artefatosSaida": [
+      "apps/web/package.json",
+      "apps/web/src/App.tsx",
+      "apps/web/src/pages/Dashboard.tsx",
+      "apps/web/README.md"
+    ],
+    "testes": ["manual", "automatizado"]
+  },
+  {
+    "id": "OPS-802",
+    "etapa": 8,
+    "modulo": "Paineis Web & Mobile",
+    "titulo": "Scaffold aplicativo mobile (React Native)",
+    "descricao": "Entregar app React Native com fluxo de autenticacao, visualizacao de missoes e streaming placeholder via WebRTC/HLS.",
+    "criteriosAceite": [
+      "apps/mobile criado com Expo, suporte a modo white-label (tema por tenant).",
+      "Tela de login reutiliza endpoints existentes e armazena tokens com SecureStore (mock).",
+      "Lista de missoes consome /api/missions e exibe status/pontos principais.",
+      "Tela de streaming abre WebRTC/HLS placeholder e mostra chat tempo real.",
+      "docs/mobile-auth-flow.md descreve onboarding, tokens e como trocar tema."
+    ],
+    "prioridade": "P1",
+    "dependencias": ["OPS-801"],
+    "artefatosSaida": [
+      "apps/mobile/package.json",
+      "apps/mobile/App.tsx",
+      "docs/mobile-auth-flow.md"
+    ],
+    "testes": ["manual"]
+  }
+]
+
