@@ -1,0 +1,29 @@
+{
+  "info": {
+    "name": "FlyGuardian Backend",
+    "description": "Coleção inicial para validar o endpoint de health check.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_postman_id": "f3b5c8c4-3c52-4f30-bcf5-53f6a15dc1e1"
+  },
+  "item": [
+    {
+      "name": "GET /health",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:4000/health",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "4000",
+          "path": [
+            "health"
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}

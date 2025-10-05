@@ -1,0 +1,54 @@
+# Arquivo de testes para a extensão REST Client do VS Code. Instale a extensão (humao.rest-client), abra este arquivo e clique em "Send Request" acima de cada requisição enquanto o servidor estiver rodando em http://localhost:4000.
+# Execute os passos na ordem numerada para popular as variáveis reutilizadas.
+
+@baseUrl = http://localhost:4000
+@registerPassword = Senha123!
+
+### 1. /health
+# @name healthCheck
+GET {{baseUrl}}/health
+Accept: application/json
+
+### 2. /auth/register
+# @name registerUser
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+Accept: application/json
+
+{
+  "name": "Teste REST Client",
+  "email": "rest-client-{{$timestamp}}@flyguardian.local",
+  "password": "{{registerPassword}}",
+  "role": "cliente"
+}
+
+### 3. /auth/login
+# @name loginUser
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+Accept: application/json
+
+{
+  "email": "{{registerUser.response.body.$.user.email}}",
+  "password": "{{registerPassword}}"
+}
+
+### 4. /auth/refresh
+# @name refreshToken
+POST {{baseUrl}}/auth/refresh
+Content-Type: application/json
+Accept: application/json
+
+{
+  "refreshToken": "{{registerUser.response.body.$.refreshToken}}"
+}
+
+### 5. /auth/reset-password
+# @name resetPassword
+POST {{baseUrl}}/auth/reset-password
+Content-Type: application/json
+Accept: application/json
+
+{
+  "email": "{{registerUser.response.body.$.user.email}}"
+}
