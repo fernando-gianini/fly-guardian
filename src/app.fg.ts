@@ -3,7 +3,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import { env } from './config/env.fg.js';
-import routes from './bootstrap/routes.ops.bootstrap.fg.js';
+import routes from './bootstrap/routes.alerts.bootstrap.fg.js';
 import { errorHandler } from './middleware/errorHandler.fg.js';
 import { NotFoundError } from './utils/errors.fg.js';
 
@@ -41,4 +41,6 @@ app.use((req, _res, next) => {
 app.use(errorHandler);
 
 export default app;
+
+
 

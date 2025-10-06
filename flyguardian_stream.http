@@ -1,0 +1,75 @@
+# Utilize este arquivo com a extensao REST Client (Huachao Mao). Atualize @accessToken com um token obtido via /auth/login e, apos criar a sessao, substitua @sessionId com o valor retornado em /stream/session.
+
+@base = http://localhost:5000
+@accessToken = eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2OGUzY2M5YTQ2MTBiMDdlNDIwZDVmNDUiLCJyb2xlIjoiY2xpZW50ZSIsImlhdCI6MTc1OTc1OTUxNywiZXhwIjoxNzU5NzYwNDE3fQ.c2VvFAxL4EJ8eQFhYDBwCXXw2T2xjJA5s0hWXqvgX3wv2tmV1B1LPz-aQ_6zpAYoev9IAkyrEbohH37Z_lSuWyzGg6W6UTW-cpC2l0owkLIt427cDR4xNe5FG09_BSjUj87a33PJDybwDqsDLRcyyRG-WNqnFm4SeRMts5Sgb6HBm9B7Qedzcq__-meAiOLxLwq5vjLInTMZja1O55vCmrBF-2MLMWIkqtHV5m6KqldYtTTB8pwPzMetfjUYELI-23o78QUVKBLv790r3alSFDpwDoyE4QAsBvrgSXzaQ97DmE1KRhwqELNIKosW0sMHZcoJMimbfxuiDTSyK30TOA
+@droneId = DRONE123
+@sessionId = 38a5b1af-4f8b-4f70-bd27-d57ead1d3682
+
+### Health
+GET {{base}}/health
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+### Streaming — Start Session
+POST {{base}}/stream/session
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "droneId": "{{droneId}}"
+}
+
+### Streaming — Send Answer
+# Antes de enviar: atualize @sessionId com o valor retornado na criacao da sessao
+POST {{base}}/stream/session/8351edf0-76ee-4175-ad02-3dc7f4b831f2/answer
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "sdpAnswer": "v=0\r\no=- 0 0 IN IP4 127.0.0.1\r\ns=MockAnswer\r\nt=0 0\r\nm=video 9 UDP/TLS/RTP/SAVPF 96\r\na=rtpmap:96 VP8/90000"
+}
+
+### Streaming — Send ICE
+POST {{base}}/stream/session/8351edf0-76ee-4175-ad02-3dc7f4b831f2/ice
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "candidate": "candidate:0 1 UDP 2122252543 192.168.0.10 56143 typ host",
+  "sdpMid": "0",
+  "sdpMLineIndex": 0
+}
+
+### Telemetry — Send Frame
+POST {{base}}/telemetry/{{droneId}}
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "lat": -23.555,
+  "lng": -46.639,
+  "alt": 120,
+  "speed": 8,
+  "batteryPct": 85,
+  "heading": 270,
+  "ts": "2025-01-01T12:00:00.000Z"
+}
+
+### Telemetry — Latest
+GET {{base}}/telemetry/{{droneId}}/latest
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+### Streaming — Stop Session
+POST {{base}}/stream/session/{{sessionId}}/stop
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "reason": "Encerrado via REST Client"
+}
+
+### Streaming — Logs
+GET {{base}}/stream/logs?droneId={{droneId}}&sessionId={{sessionId}}
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json

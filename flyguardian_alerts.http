@@ -1,0 +1,37 @@
+# Use este arquivo com a extensao REST Client (Huachao Mao). Atualize @accessToken com um token valido e substitua {{alertId}} pelo ID retornado ao criar o alerta.
+
+@base = http://localhost:5000
+@accessToken = eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2OGUzY2M5YTQ2MTBiMDdlNDIwZDVmNDUiLCJyb2xlIjoiY2xpZW50ZSIsImlhdCI6MTc1OTc1OTUxNywiZXhwIjoxNzU5NzYwNDE3fQ.c2VvFAxL4EJ8eQFhYDBwCXXw2T2xjJA5s0hWXqvgX3wv2tmV1B1LPz-aQ_6zpAYoev9IAkyrEbohH37Z_lSuWyzGg6W6UTW-cpC2l0owkLIt427cDR4xNe5FG09_BSjUj87a33PJDybwDqsDLRcyyRG-WNqnFm4SeRMts5Sgb6HBm9B7Qedzcq__-meAiOLxLwq5vjLInTMZja1O55vCmrBF-2MLMWIkqtHV5m6KqldYtTTB8pwPzMetfjUYELI-23o78QUVKBLv790r3alSFDpwDoyE4QAsBvrgSXzaQ97DmE1KRhwqELNIKosW0sMHZcoJMimbfxuiDTSyK30TOA
+
+### Criar Alerta de Emergencia
+POST {{base}}/alerts/emergency
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "location": { "lat": -23.55, "lng": -46.63 },
+  "note": "Suspeita de invasao no perimetro leste",
+  "priority": "high"
+}
+
+### Criar Alerta 190
+POST {{base}}/alerts/190
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{}
+
+### Listar Alertas
+GET {{base}}/alerts
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+### Atualizar Status
+# Substitua ALERT_ID pelo id retornado na criacao do alerta
+PATCH {{base}}/alerts/68e3cda84610b07e420d5f5a/status
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "status": "em_atendimento"
+}

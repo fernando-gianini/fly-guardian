@@ -11,7 +11,9 @@
                     "test":  "jest --config jest.config.fg.cjs",
                     "test:fg":  "jest --config jest.config.fg.cjs --passWithNoTests",
                     "test:auth":  "jest --config jest.config.fg.cjs --testPathPattern=tests/auth.test.fg.ts",
-                    "test:ops":  "jest --config jest.config.fg.cjs --testPathPattern=tests/drone.mission.test.fg.ts"
+                    "test:ops":  "jest --config jest.config.fg.cjs --testPathPattern=tests/drone.mission.test.fg.ts",
+                    "test:stream":  "jest --config jest.config.fg.cjs --testPathPattern=tests/stream.test.fg.ts",
+                    "test:alerts":  "jest --config jest.config.fg.cjs --testPathPattern=tests/alerts.test.fg.ts"
                 },
     "dependencies":  {
                          "argon2":  "^0.40.1",
