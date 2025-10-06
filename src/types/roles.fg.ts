@@ -7,4 +7,4 @@ export enum Roles {
 
 export type Role = `${Roles}`;
 
-export const ALL_ROLES: Role[] = Object.freeze(Object.values(Roles) as Role[]);
+export const ALL_ROLES = Object.freeze(Object.values(Roles) as Role[]) as readonly Role[];

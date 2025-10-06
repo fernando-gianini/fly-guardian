@@ -29,7 +29,11 @@ export function verifyRefreshToken(token: string): JwtPayload {
 }
 
 function signToken(payload: JwtPayload, expiresIn: string): string {
-  return jwt.sign(payload, JWT_PRIVATE_KEY, { ...baseSignOptions, expiresIn });
+  const options: SignOptions = {
+    ...baseSignOptions,
+    expiresIn: expiresIn as SignOptions['expiresIn'],
+  };
+  return jwt.sign(payload, JWT_PRIVATE_KEY, options);
 }
 
 function verifyToken(token: string): JwtPayload {

@@ -1,7 +1,7 @@
 # Use este arquivo com a extensao REST Client (Huachao Mao). Mantenha o servidor ativo, defina @accessToken e clique em "Send Request" sobre cada bloco.
 
-@base = http://localhost:4000
-@accessToken = PREENCHA_SEU_TOKEN_AQUI
+@base = http://localhost:5000
+@accessToken = eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2OGUzMDYwMDQ5ZDE2NDI4ZTdmMTNlMjYiLCJyb2xlIjoiY2xpZW50ZSIsImlhdCI6MTc1OTcwOTQyOSwiZXhwIjoxNzU5NzEwMzI5fQ.HHeVuYB3zuD8CUBWVjJhp7Id2HBt_V3eXlfFNn_V2xjnjxDP_F5hlSkkaZuZku8QYnBD-FIhGGfdkpGyiw8AHj6p5C8sHFY9mA-audgG9Z_LB50gvU9vzhV52HjrT0dbTGnzUgqgEogKZtefQif8KVjTznNI3OszKo2o1dg48g-MtDR9FGsWXBtjRZh5_ypHaopDxOM6DJPseJSRN8JqLHC9ggmwYf_reEdqplZoNDX86eaCx9ZZJ9KrxBxet5Yuc-nJDF8m1kkENyAD7bfSAz5uY7qE79_jysAwNlHxd4bxGHRo9mLM7MGGBglfxCItJJepZQaMpEXolOmCdwBevg
 
 ### Health
 GET {{base}}/health
@@ -15,24 +15,14 @@ Content-Type: application/json
 Authorization: Bearer {{accessToken}}
 
 {
-  "name": "Falcon X1",
-  "serial": "FG-DRN-1001",
   "model": "Matrice 300 RTK",
+  "serial": "FG-DRN-{{$timestamp}}",
+  "batteryPct": 92,
+  "status": "ativo",
+  "name": "Falcon X1",
   "manufacturer": "DJI",
-  "tenantId": "tenant-alpha",
-  "maxFlightMinutes": 45,
-  "maxPayloadKg": 2.7,
-  "status": "active"
+  "notes": "Unidade principal de patrulha"
 }
-
-> {%
-  const data = JSON.parse(response.body || '{}');
-  const id = data.id || data.drone?.id || data._id;
-  if (id) {
-    client.global.set('droneId', id);
-    client.log(`droneId=${id}`);
-  }
-%}
 
 ### Drones - List (GET /drones)
 # @name listDrones
@@ -42,24 +32,24 @@ Authorization: Bearer {{accessToken}}
 
 ### Drones - Retrieve (GET /drones/:id)
 # @name getDrone
-GET {{base}}/drones/{{droneId}}
+GET {{base}}/drones/{{createDrone.response.body.$.id}}
 Content-Type: application/json
 Authorization: Bearer {{accessToken}}
 
 ### Drones - Update (PATCH /drones/:id)
 # @name updateDrone
-PATCH {{base}}/drones/{{droneId}}
+PATCH {{base}}/drones/{{createDrone.response.body.$.id}}
 Content-Type: application/json
 Authorization: Bearer {{accessToken}}
 
 {
-  "status": "maintenance",
-  "nickname": "Falcon X1 Oeste"
+  "status": "manutencao",
+  "notes": "Revisao programada"
 }
 
 ### Drones - Delete (DELETE /drones/:id)
 # @name deleteDrone
-DELETE {{base}}/drones/{{droneId}}
+DELETE {{base}}/drones/{{createDrone.response.body.$.id}}
 Content-Type: application/json
 Authorization: Bearer {{accessToken}}
 
@@ -70,35 +60,16 @@ Content-Type: application/json
 Authorization: Bearer {{accessToken}}
 
 {
-  "name": "Perimetro Oeste - Turno Noite",
-  "droneId": "{{droneId}}",
-  "tenantId": "tenant-alpha",
-  "mode": "grid",
-  "status": "draft",
-  "areaHectares": 12.5,
-  "estimatedFlightMinutes": 28,
-  "returnHomeAltitude": 120,
+  "name": "Perimetro Oeste",
+  "droneId": "{{createDrone.response.body.$.id}}",
   "waypoints": [
-    { "lat": -23.5503, "lng": -46.6330, "alt": 110 },
-    { "lat": -23.5498, "lng": -46.6315, "alt": 112 },
-    { "lat": -23.5512, "lng": -46.6307, "alt": 115 },
-    { "lat": -23.5520, "lng": -46.6324, "alt": 108 }
+    { "lat": -23.5503, "lng": -46.6330, "alt": 110, "speed": 12 },
+    { "lat": -23.5498, "lng": -46.6315, "alt": 112, "speed": 11 }
   ],
-  "checklist": {
-    "battery": "ok",
-    "link": "ok",
-    "failsafe": "ok"
-  }
+  "etaSeconds": 840,
+  "status": "planejada",
+  "notes": "Ronda noturna"
 }
-
-> {%
-  const data = JSON.parse(response.body || '{}');
-  const id = data.id || data.mission?.id || data._id;
-  if (id) {
-    client.global.set('missionId', id);
-    client.log(`missionId=${id}`);
-  }
-%}
 
 ### Missions - List (GET /missions)
 # @name listMissions
@@ -108,20 +79,20 @@ Authorization: Bearer {{accessToken}}
 
 ### Missions - Retrieve (GET /missions/:id)
 # @name getMission
-GET {{base}}/missions/{{missionId}}
+GET {{base}}/missions/{{createMission.response.body.$.id}}
 Content-Type: application/json
 Authorization: Bearer {{accessToken}}
 
 ### Missions - Update Status (PATCH /missions/:id/status)
 # @name updateMissionStatus
-PATCH {{base}}/missions/{{missionId}}/status
+PATCH {{base}}/missions/{{createMission.response.body.$.id}}/status
 Content-Type: application/json
 Authorization: Bearer {{accessToken}}
 
 {
-  "status": "approved",
+  "status": "em_execucao",
   "approvedBy": "cco.marcos",
-  "notes": "Trajeto revisado e autorizado para 20h00 UTC."
+  "notes": "Autorizado pelo CCO"
 }
 
 ### FlightHistory - Create (POST /flight-history)
@@ -131,28 +102,21 @@ Content-Type: application/json
 Authorization: Bearer {{accessToken}}
 
 {
-  "missionId": "{{missionId}}",
-  "droneId": "{{droneId}}",
-  "tenantId": "tenant-alpha",
-  "status": "completed",
+  "missionId": "{{createMission.response.body.$.id}}",
+  "droneId": "{{createDrone.response.body.$.id}}",
   "startedAt": "2025-01-10T23:00:00Z",
-  "endedAt": "2025-01-10T23:32:00Z",
-  "distanceKm": 6.4,
-  "maxAltitudeMeters": 118,
-  "windGustKts": 12,
-  "operator": "operador.lima",
-  "telemetry": [
-    { "timestamp": "2025-01-10T23:05:00Z", "lat": -23.5501, "lng": -46.6327, "alt": 112 },
-    { "timestamp": "2025-01-10T23:12:00Z", "lat": -23.5514, "lng": -46.6319, "alt": 115 }
-  ],
-  "media": [
-    { "type": "photo", "url": "https://media.flyguardian.local/missions/{{missionId}}/photo-01.jpg" }
-  ],
-  "notes": "Nenhuma ocorrencia relevada."
+  "endedAt": "2025-01-10T23:25:00Z",
+  "log": {
+    "distanceKm": 6.1,
+    "maxAltitudeMeters": 118,
+    "windGustKts": 12,
+    "notes": "Sem ocorrencias"
+  }
 }
 
 ### FlightHistory - List by mission (GET /flight-history)
 # @name listFlightHistory
-GET {{base}}/flight-history?missionId={{missionId}}
+GET {{base}}/flight-history?missionId={{createMission.response.body.$.id}}
 Content-Type: application/json
 Authorization: Bearer {{accessToken}}
+
